@@ -1,3 +1,12 @@
+.table-fixed thead {
+  width: 97%;
+}
+.table-fixed tbody {
+  height: 230px;
+  overflow-y: auto;
+  width: 100%;
+}
+
 .tree-selection-brush .extent {
     fill-opacity: .05;
     stroke: #fff;
@@ -32,15 +41,15 @@ font: 10px sans-serif;
 }
 
 .node-selected {
-fill: #f00 !important;     
+fill: #f00 !important;
 }
 
 .node-collapsed circle, .node-collapsed ellipse, .node-collapsed rect{
-fill: black !important;     
+fill: black !important;
 }
 
 .node-tagged {
-fill: #00f; 
+fill: #00f;
 }
 
 .branch {
@@ -57,7 +66,7 @@ opacity: 0.5;
 }
 
 .branch-selected {
-stroke: #f00 !important; 
+stroke: #f00 !important;
 stroke-width: 3px;
 }
 

@@ -1,3 +1,6 @@
+# Avoid example files due to confidential research data
+files
+
 # Logs
 logs
 *.log

@@ -2,7 +2,7 @@
 
   var d3_layout_phylotree_event_id = "d3.layout.phylotree.event",
       d3_layout_phylotree_context_menu_id = "d3_layout_phylotree_context_menu";
-/** 
+/**
 * @name newick_parser
 * @version 1.0
 * @exports phylotree
@@ -872,7 +872,98 @@
 
           menu_object.selectAll("li").remove();
           if (node) {
+
               if (!d3_phylotree_is_leafnode(node)) {
+                //Showing Biological Stuff
+                menu_object.append("li").append("a")
+                    .attr("tabindex", "-1")
+                    .text("Biological Function")
+                    .on("click", function(d) {
+                        tree.modify_selection (function (d) { return false;});
+
+                        menu_object.style("display", "none");
+                        phylotree.modify_selection(phylotree.select_all_descendants(node, true, true));
+
+                        var tissues = phylotree.select_all_descendants(node, true, false);
+                        var tissuesToAnalyze = [];
+                        for (var i = 0; i < tissues.length; i++) {
+                          if(d3_phylotree_is_leafnode(tissues[i]))
+                            tissuesToAnalyze.push(tissues[i].name);
+                        }
+
+                        if(Object.keys(pathwayInfo).length < 1){
+                          alert("Please upload biological information first.");
+                          return;
+                        }
+
+                        var leafs = tree.get_nodes().filter((function (d) { return d3_phylotree_is_leafnode (d);}))
+
+                        if(Object.keys(pathwayInfo).length != leafs.length){
+                          alert("Your file Biological file doesn't match this tree. The number of tissues is not the same in the file and the tree.");
+                          return;
+                        }
+                        /**
+                         *
+                         *  Clean table rows from bio perhaps
+                         *
+                         */
+                        //$('#bioTable').empty();
+                        fileName = "hello";
+                        document.title = tissuesToAnalyze.toString().replace(new RegExp(",", 'g'), "-");
+                        //console.log(tissuesToAnalyze.toString().replace(new RegExp(",", 'g'), "-"));
+                        var table = $('#biologicalTable').DataTable();
+                        table.clear();
+
+                        /**
+                         *
+                         *  Get Pathways and Genes in Common
+                         *
+                         */
+                        var commonPathways = is_biologically_common(tissuesToAnalyze);
+                        if(commonPathways.length < 1){
+                        }
+                        else {
+                          var dataSet = [];
+                          var commonGenes = get_genes_common(tissuesToAnalyze, commonPathways);
+                          for (var j = 0; j < commonPathways.length; j++) {
+                            var pathwayName = commonPathways[j];
+                            var dataInfo = [];
+                            dataInfo.push(pathwayName);
+                            if(commonGenes[pathwayName].length > 0)
+                              dataInfo.push(commonGenes[pathwayName].toString());
+                            else {
+                              dataInfo.push(["No common genes"]);
+                            }
+                            dataSet.push(dataInfo);
+                            //$('#bioTable').append("<tr><td>"+pathwayName+"</td><td>"+commonGenes[pathwayName]+"</td></tr>");
+                          }
+                          table.rows.add(dataSet);
+                          table.draw();
+                        }
+                        table.destroy();
+                        fileName = tissuesToAnalyze.toString().replace(new RegExp(",", 'g'), "-");
+                        $('#biologicalTable').DataTable({
+                          dom: 'Bfrtip',
+                          columns : [ {title: "Pathways"},
+                                      {title: "Genes"}
+                                    ],
+                                    buttons: [
+                                            {
+                                              extend: 'excelHtml5',
+                                              filename: fileName
+                                            },
+                                            {
+                                              extend: 'csvHtml5',
+                                              filename: fileName
+                                            }
+                                        ]
+                        });
+                        $('#bioModal').modal();
+                    });
+
+
+
+
                   if (options["collapsible"]) {
                       menu_object.append("li").append("a")
                           .attr("tabindex", "-1")
@@ -1278,7 +1369,7 @@
           count_listener_handler = attr;
           return phylotree;
       };
-      
+
       phylotree.layout_handler = function(attr) {
           if (!arguments.length) return layout_listener_handler;
           layout_listener_handler = attr;
@@ -2411,7 +2502,7 @@
   function d3_phylotree_newick_parser(nwk_str, bootstrap_values) {
 
       var clade_stack = [];
-/** 
+/**
  * @method add_new_tree_level
  * @memberof phylotree
  * @returns nothing
@@ -2429,7 +2520,7 @@
           clade_stack[clade_stack.length - 1]["original_child_order"] = the_parent["children"].length;
       }
 
- /** 
+ /**
  * @method finish_node_definition
  * @memberof phylotree
  * @returns nothing
@@ -2631,7 +2722,7 @@
       });
       document.dispatchEvent(event);
   }
-  
+
    function d3_phylotree_trigger_layout (tree) {
      var event = new CustomEvent(d3_layout_phylotree_event_id, {
          'detail': ['layout', tree, tree.layout_handler()]
@@ -2645,7 +2736,7 @@
               event.detail[1].refresh();
               break;
           case 'count_update':
-          case 'layout': 
+          case 'layout':
               event.detail[2](event.detail[1]);
               break;
       }
